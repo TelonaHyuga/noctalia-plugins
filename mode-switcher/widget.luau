@@ -12,11 +12,11 @@ function update()
 end
 
 function onClick()
-    noctalia.togglePanel("user/mode-switcher:modes")
+    noctalia.togglePanel("TelonaHyuga/mode-switcher:modes")
 end
 
 function onRightClick()
-    noctalia.togglePanel("user/mode-switcher:settings")
+    noctalia.togglePanel("TelonaHyuga/mode-switcher:settings")
 end
 
 function onScroll(axis, steps)
