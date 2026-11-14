@@ -1,0 +1,12 @@
+{
+  "settings.title": "Mode Settings",
+  "settings.new_mode": "New mode name",
+  "settings.create": "Create",
+  "settings.no_modes": "No modes",
+  "settings.launch": "Launch",
+  "settings.kill": "Kill",
+  "settings.empty": "(empty)",
+  "settings.launch_cmd": "Launch command",
+  "settings.kill_cmd": "Kill command",
+  "modes.title": "Modes"
+}   

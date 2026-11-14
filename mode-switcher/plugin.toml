@@ -1,0 +1,31 @@
+id = "user/mode-switcher"
+name = "Mode Switcher"
+version = "1.0.2"
+plugin_api = 17
+author = "user"
+description = "Переключение режимов с запуском и закрытием программ"
+tags = ["productivity", "hyprland"]
+
+[[service]]
+id = "core"
+entry = "service.luau"
+
+[[widget]]
+id = "bar"
+entry = "widget.luau"
+
+[[desktop_widget]]
+id = "desktop"
+entry = "desktop.luau"
+
+[[panel]]
+id = "modes"
+entry = "modes_panel.luau"
+width = 300
+height = 400
+
+[[panel]]
+id = "settings"
+entry = "settings.luau"
+width = 450
+height = 550   

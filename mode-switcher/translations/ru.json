@@ -1,0 +1,12 @@
+{
+  "settings.title": "Настройки режимов",
+  "settings.new_mode": "Имя нового режима",
+  "settings.create": "Создать",
+  "settings.no_modes": "Нет режимов",
+  "settings.launch": "Запуск",
+  "settings.kill": "Закрытие",
+  "settings.empty": "(пусто)",
+  "settings.launch_cmd": "Команда запуска",
+  "settings.kill_cmd": "Команда закрытия",
+  "modes.title": "Режимы"
+}   
