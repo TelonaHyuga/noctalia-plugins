@@ -1,0 +1,1 @@
+- In settings enable "modes - Open Near Clicked Widget" and "settings - Open Near Clicked Widget"
