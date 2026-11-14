@@ -1,10 +1,12 @@
 [[plugin]]
-id = "hyuga/mode-switcher"
+id = "TelonaHyuga/mode-switcher"
 name = "Mode Switcher"
 version = "1.0.2"
-author = "hyuga"
+author = "TelonaHyuga"
 license = "GNU"
 icon = "at"
+updated_at = 1763086800
+added_at = 1763086800
 description = "Create and toggle programm sets"
 deprecated = false
 plugin_api = 17
