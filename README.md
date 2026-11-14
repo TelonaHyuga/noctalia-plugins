@@ -1,2 +1,2 @@
-# mode-switcher
-Plugin for Noctalia shell (create and change programms set)
+# Hyuga noctalia shell repo
+Plugin for Noctalia shell
