@@ -92,13 +92,18 @@ local function buildLaunchCmd(rawCmd)
         if d then disp = d end
     end
 
-    if ws and disp then
-        return "hyprctl dispatch focusmonitor " .. disp .. " && hyprctl dispatch workspace " .. ws .. " && " .. baseCmd
-    elseif ws then
-        return "hyprctl dispatch workspace " .. ws .. " && " .. baseCmd
-    else
-        return baseCmd
+    local prefix = "env WAYLAND_DISPLAY=wayland-1 "
+    local cmds = {}
+
+    if disp then
+        table.insert(cmds, "hyprctl dispatch 'hl.dsp.focus({ monitor = \"" .. disp .. "\" })'")
     end
+    if ws then
+        table.insert(cmds, "hyprctl dispatch 'hl.dsp.focus({ workspace = \"" .. ws .. "\" })'")
+    end
+    table.insert(cmds, baseCmd)
+
+    return prefix .. "sh -c '" .. table.concat(cmds, " && ") .. "'"
 end
 
 local function doSwitch(newIdx)
