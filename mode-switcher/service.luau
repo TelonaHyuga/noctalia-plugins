@@ -78,7 +78,6 @@ local function publishState()
 end
 
 local function buildLaunchCmd(rawCmd)
--- Формат: "inkscape" или "inkscape|ws:2|disp:DP-2"
     local parts = {}
     for part in rawCmd:gmatch("[^|]+") do
         table.insert(parts, part)
@@ -94,9 +93,9 @@ local function buildLaunchCmd(rawCmd)
     end
 
     if ws and disp then
-        return 'hyprctl dispatch workspace ' .. ws .. ',monitor:' .. disp .. ' && ' .. baseCmd
+        return "hyprctl dispatch focusmonitor " .. disp .. " && hyprctl dispatch workspace " .. ws .. " && " .. baseCmd
     elseif ws then
-        return 'hyprctl dispatch workspace ' .. ws .. ' && ' .. baseCmd
+        return "hyprctl dispatch workspace " .. ws .. " && " .. baseCmd
     else
         return baseCmd
     end
