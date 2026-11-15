@@ -7,7 +7,6 @@ local newKillCmd = ""
 local expandedCmd = nil
 local editWs = ""
 local editDisp = ""
-local render
 
 local function parseModes()
     local result = {}
@@ -68,40 +67,6 @@ local function sendReq(action, ...)
     noctalia.state.set("req", table.concat(parts, "\x1f"))
 end
 
-local function openEdit(ci)
-    if expandedCmd == ci then
-        expandedCmd = nil
-    else
-        expandedCmd = ci
-        local modes = parseModes()
-        if modes[selectedMode] then
-            local sel = modes[selectedMode]
-            if sel.launch[ci] then
-                local _, ws, disp = parseLaunchCmd(sel.launch[ci])
-                editWs = ws
-                editDisp = disp
-            else
-                editWs = ""
-                editDisp = ""
-            end
-        end
-    end
-    render()
-end
-
-local function saveEdit()
-    local modes = parseModes()
-    if modes[selectedMode] and modes[selectedMode].launch[expandedCmd] then
-        local base = modes[selectedMode].launch[expandedCmd]
-        local b, _, _ = parseLaunchCmd(base)
-        local newCmd = buildLaunchCmdStr(b, editWs, editDisp)
-        sendReq("set_launch", tostring(selectedMode), tostring(expandedCmd), newCmd)
-    end
-    expandedCmd = nil
-    editWs = ""
-    editDisp = ""
-end
-
 local function render()
     local modes = parseModes()
     local children = {}
@@ -147,7 +112,6 @@ local function render()
         end }),
     }))
 
-    -- Launch
     table.insert(children, ui.label({ text = "\xe2\x94\x80\xe2\x94\x80 " .. noctalia.tr("settings.launch") .. " \xe2\x94\x80\xe2\x94\x80", fontWeight = "bold" }))
     for i, cmd in ipairs(sel.launch) do
         local ci = i
@@ -155,7 +119,21 @@ local function render()
         table.insert(children, ui.row({ gap = 6, align = "center" }, {
             ui.label({ text = base, flexGrow = 1 }),
             ui.button({ text = "\xe2\x9a\x99", variant = "ghost", onClick = function()
-                openEdit(ci)
+                if expandedCmd == ci then
+                    expandedCmd = nil
+                else
+                    expandedCmd = ci
+                    local m2 = parseModes()
+                    if m2[selectedMode] and m2[selectedMode].launch[ci] then
+                        local _, w, d = parseLaunchCmd(m2[selectedMode].launch[ci])
+                        editWs = w
+                        editDisp = d
+                    else
+                        editWs = ""
+                        editDisp = ""
+                    end
+                end
+                render()
             end }),
             ui.button({ text = "\xe2\x9c\x95", variant = "ghost", onClick = function()
                 sendReq("del_launch", tostring(selectedMode), tostring(ci))
@@ -170,7 +148,16 @@ local function render()
                 ui.label({ text = "Disp:", color = "muted" }),
                 ui.input({ placeholder = "DP-2, HDMI-A-1", value = editDisp, onChange = function(v) editDisp = v end, flexGrow = 1 }),
                 ui.button({ text = "\xe2\x9c\x93", variant = "primary", onClick = function()
-                    saveEdit()
+                    local m2 = parseModes()
+                    if m2[selectedMode] and m2[selectedMode].launch[expandedCmd] then
+                        local b, _, _ = parseLaunchCmd(m2[selectedMode].launch[expandedCmd])
+                        local newCmd = buildLaunchCmdStr(b, editWs, editDisp)
+                        sendReq("set_launch", tostring(selectedMode), tostring(expandedCmd), newCmd)
+                    end
+                    expandedCmd = nil
+                    editWs = ""
+                    editDisp = ""
+                    render()
                 end }),
             }))
         end
@@ -189,7 +176,6 @@ local function render()
         end }),
     }))
 
-    -- Kill
     table.insert(children, ui.label({ text = "\xe2\x94\x80\xe2\x94\x80 " .. noctalia.tr("settings.kill") .. " \xe2\x94\x80\xe2\x94\x80", fontWeight = "bold" }))
     for i, cmd in ipairs(sel.kill) do
         local ci = i
