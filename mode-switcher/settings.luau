@@ -144,9 +144,9 @@ local function render()
         if expandedCmd == ci then
             table.insert(children, ui.row({ gap = 6, align = "center" }, {
                 ui.label({ text = "  WS:", color = "muted" }),
-                ui.input({ placeholder = "1, 2, 3...", value = editWs, onChange = function(v) editWs = v end, flexGrow = 1 }),
+                ui.input({ key = "ws_" .. ci, placeholder = "1, 2, 3...", value = editWs, onChange = function(v) editWs = v end, flexGrow = 1 }),
                 ui.label({ text = "Disp:", color = "muted" }),
-                ui.input({ placeholder = "DP-2, HDMI-A-1", value = editDisp, onChange = function(v) editDisp = v end, flexGrow = 1 }),
+                ui.input({ key = "disp_" .. ci, placeholder = "DP-2, HDMI-A-1", value = editDisp, onChange = function(v) editDisp = v end, flexGrow = 1 }),
                 ui.button({ text = "\xe2\x9c\x93", variant = "primary", onClick = function()
                     local m2 = parseModes()
                     if m2[selectedMode] and m2[selectedMode].launch[expandedCmd] then
