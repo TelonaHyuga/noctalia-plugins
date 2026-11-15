@@ -77,11 +77,34 @@ local function publishState()
     noctalia.state.set("modes_data", table.concat(lines, "\n"))
 end
 
+local function buildLaunchCmd(rawCmd)
+-- Формат: "inkscape" или "inkscape|ws:2|disp:DP-2"
+    local parts = {}
+    for part in rawCmd:gmatch("[^|]+") do
+        table.insert(parts, part)
+    end
+    local baseCmd = parts[1]
+    local ws = nil
+    local disp = nil
+    for i = 2, #parts do
+        local w = parts[i]:match("^ws:(%d+)$")
+        if w then ws = w end
+        local d = parts[i]:match("^disp:([%w%-]+)$")
+        if d then disp = d end
+    end
+
+    if ws and disp then
+        return 'hyprctl dispatch workspace ' .. ws .. ',monitor:' .. disp .. ' && ' .. baseCmd
+    elseif ws then
+        return 'hyprctl dispatch workspace ' .. ws .. ' && ' .. baseCmd
+    else
+        return baseCmd
+    end
+end
+
 local function doSwitch(newIdx)
     if newIdx < 1 or newIdx > #modes then return end
     if newIdx == currentIdx then return end
-
-    currentIdx = newIdx
 
     if modes[currentIdx] then
         for _, cmd in ipairs(modes[currentIdx].kill) do
@@ -90,10 +113,13 @@ local function doSwitch(newIdx)
         end
     end
 
+    currentIdx = newIdx
+
     if modes[currentIdx] then
         for _, cmd in ipairs(modes[currentIdx].launch) do
-            noctalia.log("MS: launch: " .. cmd)
-            pcall(function() noctalia.runAsync('sh -c "' .. cmd .. '"') end)
+            local fullCmd = buildLaunchCmd(cmd)
+            noctalia.log("MS: launch: " .. fullCmd)
+            pcall(function() noctalia.runAsync('sh -c "' .. fullCmd .. '"') end)
         end
     end
 
@@ -178,6 +204,15 @@ noctalia.state.watch("req", function(val)
         local ci = tonumber(parts[3])
         if mi and ci and modes[mi] then
             table.remove(modes[mi].kill, ci)
+            saveModes()
+            publishState()
+        end
+    elseif action == "set_launch" then
+        local mi = tonumber(parts[2])
+        local ci = tonumber(parts[3])
+        local newCmd = parts[4]
+        if mi and ci and newCmd and modes[mi] and modes[mi].launch[ci] then
+            modes[mi].launch[ci] = newCmd
             saveModes()
             publishState()
         end
