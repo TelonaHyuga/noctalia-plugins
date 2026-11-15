@@ -5,6 +5,8 @@ local newModeName = ""
 local newLaunchCmd = ""
 local newKillCmd = ""
 local expandedCmd = nil
+local editWs = ""
+local editDisp = ""
 
 local function parseModes()
     local result = {}
@@ -65,6 +67,40 @@ local function sendReq(action, ...)
     noctalia.state.set("req", table.concat(parts, "\x1f"))
 end
 
+local function openEdit(ci)
+    if expandedCmd == ci then
+        expandedCmd = nil
+    else
+        expandedCmd = ci
+        local modes = parseModes()
+        if modes[selectedMode] then
+            local sel = modes[selectedMode]
+            if sel.launch[ci] then
+                local _, ws, disp = parseLaunchCmd(sel.launch[ci])
+                editWs = ws
+                editDisp = disp
+            else
+                editWs = ""
+                editDisp = ""
+            end
+        end
+    end
+    render()
+end
+
+local function saveEdit()
+    local modes = parseModes()
+    if modes[selectedMode] and modes[selectedMode].launch[expandedCmd] then
+        local base = modes[selectedMode].launch[expandedCmd]
+        local b, _, _ = parseLaunchCmd(base)
+        local newCmd = buildLaunchCmdStr(b, editWs, editDisp)
+        sendReq("set_launch", tostring(selectedMode), tostring(expandedCmd), newCmd)
+    end
+    expandedCmd = nil
+    editWs = ""
+    editDisp = ""
+end
+
 local function render()
     local modes = parseModes()
     local children = {}
@@ -74,7 +110,7 @@ local function render()
         ui.input({ placeholder = noctalia.tr("settings.new_mode"), value = newModeName, onChange = function(v) newModeName = v end, flexGrow = 1 }),
         ui.button({ text = noctalia.tr("settings.create"), variant = "primary", onClick = function()
             local name = newModeName
-            if name == "" then name = "Режим " .. (#modes + 1) end
+            if name == "" then name = "Mode " .. (#modes + 1) end
             newModeName = ""
             sendReq("add_mode", name)
         end }),
@@ -94,54 +130,46 @@ local function render()
     local sel = modes[selectedMode]
 
     table.insert(children, ui.row({ gap = 6, align = "center" }, {
-        ui.button({ text = "←", onClick = function()
+        ui.button({ text = "\xe2\x86\x90", onClick = function()
             selectedMode = math.max(1, selectedMode - 1)
             expandedCmd = nil
             render()
         end }),
         ui.label({ text = sel.name .. " (" .. selectedMode .. "/" .. #modes .. ")", fontWeight = "bold", flexGrow = 1 }),
-        ui.button({ text = "→", onClick = function()
+        ui.button({ text = "\xe2\x86\x92", onClick = function()
             selectedMode = math.min(#modes, selectedMode + 1)
             expandedCmd = nil
             render()
         end }),
-        ui.button({ text = "✕", variant = "danger", onClick = function()
+        ui.button({ text = "\xe2\x9c\x95", variant = "danger", onClick = function()
             sendReq("del_mode", tostring(selectedMode))
         end }),
     }))
 
     -- Launch
-    table.insert(children, ui.label({ text = "── " .. noctalia.tr("settings.launch") .. " ──", fontWeight = "bold" }))
+    table.insert(children, ui.label({ text = "\xe2\x94\x80\xe2\x94\x80 " .. noctalia.tr("settings.launch") .. " \xe2\x94\x80\xe2\x94\x80", fontWeight = "bold" }))
     for i, cmd in ipairs(sel.launch) do
         local ci = i
         local base, ws, disp = parseLaunchCmd(cmd)
         table.insert(children, ui.row({ gap = 6, align = "center" }, {
             ui.label({ text = base, flexGrow = 1 }),
-            ui.button({ text = "⚙", variant = "ghost", onClick = function()
-                expandedCmd = (expandedCmd == ci) and nil or ci
-                render()
+            ui.button({ text = "\xe2\x9a\x99", variant = "ghost", onClick = function()
+                openEdit(ci)
             end }),
-            ui.button({ text = "✕", variant = "ghost", onClick = function()
+            ui.button({ text = "\xe2\x9c\x95", variant = "ghost", onClick = function()
                 sendReq("del_launch", tostring(selectedMode), tostring(ci))
                 if expandedCmd == ci then expandedCmd = nil end
             end }),
         }))
 
-        -- Expanded config row
         if expandedCmd == ci then
-            local curWs = ws
-            local curDisp = disp
-            local newWs = curWs
-            local newDisp = curDisp
             table.insert(children, ui.row({ gap = 6, align = "center" }, {
                 ui.label({ text = "  WS:", color = "muted" }),
-                ui.input({ placeholder = "1, 2, 3...", value = newWs, onChange = function(v) newWs = v end, flexGrow = 1 }),
+                ui.input({ placeholder = "1, 2, 3...", value = editWs, onChange = function(v) editWs = v end, flexGrow = 1 }),
                 ui.label({ text = "Disp:", color = "muted" }),
-                ui.input({ placeholder = "DP-2, HDMI-A-1", value = newDisp, onChange = function(v) newDisp = v end, flexGrow = 1 }),
-                ui.button({ text = "✓", variant = "primary", onClick = function()
-                    local newCmd = buildLaunchCmdStr(base, newWs, newDisp)
-                    sendReq("set_launch", tostring(selectedMode), tostring(ci), newCmd)
-                    expandedCmd = nil
+                ui.input({ placeholder = "DP-2, HDMI-A-1", value = editDisp, onChange = function(v) editDisp = v end, flexGrow = 1 }),
+                ui.button({ text = "\xe2\x9c\x93", variant = "primary", onClick = function()
+                    saveEdit()
                 end }),
             }))
         end
@@ -161,12 +189,12 @@ local function render()
     }))
 
     -- Kill
-    table.insert(children, ui.label({ text = "── " .. noctalia.tr("settings.kill") .. " ──", fontWeight = "bold" }))
+    table.insert(children, ui.label({ text = "\xe2\x94\x80\xe2\x94\x80 " .. noctalia.tr("settings.kill") .. " \xe2\x94\x80\xe2\x94\x80", fontWeight = "bold" }))
     for i, cmd in ipairs(sel.kill) do
         local ci = i
         table.insert(children, ui.row({ gap = 6, align = "center" }, {
             ui.label({ text = cmd, flexGrow = 1 }),
-            ui.button({ text = "✕", variant = "ghost", onClick = function()
+            ui.button({ text = "\xe2\x9c\x95", variant = "ghost", onClick = function()
                 sendReq("del_kill", tostring(selectedMode), tostring(ci))
             end }),
         }))
@@ -195,6 +223,8 @@ function onOpen(context)
     currentIdx = noctalia.state.get("current_idx") or 1
     selectedMode = currentIdx
     expandedCmd = nil
+    editWs = ""
+    editDisp = ""
     render()
 end
 
@@ -204,4 +234,4 @@ end
 noctalia.state.watch("modes_data", function(val)
     modesData = val or ""
     render()
-end)
+end)   
