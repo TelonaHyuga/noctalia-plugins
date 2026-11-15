@@ -7,6 +7,7 @@ local newKillCmd = ""
 local expandedCmd = nil
 local editWs = ""
 local editDisp = ""
+local render
 
 local function parseModes()
     local result = {}
