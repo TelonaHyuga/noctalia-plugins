@@ -111,6 +111,7 @@ local function doSwitch(newIdx)
     if newIdx < 1 or newIdx > #modes then return end
     if newIdx == currentIdx then return end
 
+    -- kill: команды закрытия СТАРОГО режима
     if modes[currentIdx] then
         for _, cmd in ipairs(modes[currentIdx].kill) do
             noctalia.log("MS: kill: " .. cmd)
@@ -118,8 +119,22 @@ local function doSwitch(newIdx)
         end
     end
 
+    -- auto-kill: программы из launch СТАРОГО режима
+    if modes[currentIdx] then
+        for _, cmd in ipairs(modes[currentIdx].launch) do
+            local baseCmd = cmd:match("^([^|]+)") or cmd
+            local procName = baseCmd:match("^%S+")
+            if procName then
+                local killCmd = "pkill " .. procName
+                noctalia.log("MS: auto-kill: " .. killCmd)
+                pcall(function() noctalia.runAsync(killCmd) end)
+            end
+        end
+    end
+
     currentIdx = newIdx
 
+    -- launch: программы НОВОГО режима
     if modes[currentIdx] then
         for _, cmd in ipairs(modes[currentIdx].launch) do
             local fullCmd = buildLaunchCmd(cmd)
