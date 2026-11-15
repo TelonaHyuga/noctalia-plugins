@@ -113,7 +113,7 @@ local function doSwitch(newIdx)
     if modes[currentIdx] then
         for _, cmd in ipairs(modes[currentIdx].kill) do
             noctalia.log("MS: kill: " .. cmd)
-            pcall(function() noctalia.runAsync('sh -c "' .. cmd .. '"') end)
+            pcall(function() noctalia.runAsync(cmd) end)
         end
     end
 
@@ -123,7 +123,7 @@ local function doSwitch(newIdx)
         for _, cmd in ipairs(modes[currentIdx].launch) do
             local fullCmd = buildLaunchCmd(cmd)
             noctalia.log("MS: launch: " .. fullCmd)
-            pcall(function() noctalia.runAsync('sh -c "' .. fullCmd .. '"') end)
+            pcall(function() noctalia.runAsync(fullCmd) end)
         end
     end
 
